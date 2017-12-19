@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+		<script src="js/mui.min.js"></script>
+	<body>
+		<header class="mui-bar mui-bar-nav" id=""> 
+		    <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+		    <h1 class="mui-title"></h1>
+		</header>
+		<div class="mui-content">
+			<ul class="mui-table-view" id='weather_list'>
+		        <li class="mui-table-view-cell">
+		                {{city_name}}
+		        </li>
+		      
+	            <li class="mui-table-view-cell mui-media" v-for="weather_data in weather_data">
+	                <a href="javascript:;">
+	                    <img class="mui-media-object mui-pull-left" v-bind:src="weather_data.dayPictureUrl">
+	                    <div class="mui-media-body">
+	                    	{{weather_data.date}}
+	                        <p class="mui-ellipsis">{{weather_data.temperature}}　{{weather_data.weather}}　{{weather_data.wind}}</p>
+	                    </div>
+	                </a>
+	            </li>
+	            
+	            <li class="mui-table-view-cell mui-collapse" v-for="index in index">
+		            <a class="mui-navigate-right" href="#">{{index.tipt}}</a>
+		            <div class="mui-collapse-content">
+		                <p>{{index.des}}</p>
+		            </div>
+		        </li>
+		    </ul>
+		</div>
+	</body>
+
+</html>
+<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="js/jquery.qrcode.min.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
+<script>
+	var city_name = localStorage['city_name'];
+
+	var vm = new Vue({
+		el:'#weather_list',
+		data:{
+			city_name:city_name,
+			index:'',
+			weather_data:''
+		},
+		created:function(){
+			var api = 'http://api.map.baidu.com/telematics/v3/weather?location='+city_name+'&output=json&ak=hTXrtTGGcljoOMdf2jZcc1yD';
+			mui.getJSON(api,{},function(data){
+//				console.log(data);
+				vm.index = data['results'][0]['index'];
+				vm.weather_data = data['results'][0]['weather_data'];
+				}
+			);
+		}
+	})
+	
+	
+</script>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+	</head>
+		<script src="js/mui.min.js"></script>
+	<body>
+		<div class="mui-content">
+			<div class="mui-input-row mui-search">
+			    <input type="search" id="search_input" class="mui-input-clear" placeholder="">
+			</div>
+		
+			<ul class="mui-table-view" id="weather_list" v-if="show_list">
+			    <li v-if="show_list" v-for="city in citys" class="mui-table-view-cell mui-media" v-on:click="skip_info(city.name)" v-bind:name="city.name">
+			        <a href="javascript:;">
+			            <img class="mui-media-object mui-pull-left" v-bind:src="city.img">
+			            <div class="mui-media-body">
+			                {{city.name}}
+			                <p class="mui-ellipsis">{{city.html}}</p>
+			            </div>
+			        </a>
+			    </li>
+			</ul>
+			
+		</div>
+	</body>
+
+</html>
+<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="js/jquery.qrcode.min.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
+<script type="text/javascript">
+	var city_name;
+	var city_names = new Array();
+	var vm;
+	
+	vm = new Vue({
+				el:'#weather_list',
+				data:{
+					citys:[],
+					show_list:false//列表隐藏
+				},
+				mounted:function(){
+						//监听回车
+						document.onkeydown = function(e){
+							if(e.keyCode == 13){
+								city_name = $('#search_input').val();//获取输入城市名
+								
+								if(city_name != ''){
+									//判断城市是否重复
+									if(city_names.length > 0){
+										var j = 0;
+										for (var i=0;i<city_names.length;i++) {
+											if(city_names[i] == city_name){
+												j++;
+											}
+										}
+										if(j > 0){
+											mui.confirm('已有城市记录，请点击跳转','温馨提示',['取消','跳转'],function(e){
+//												console.log(e.index);
+												if(e.index == 1){
+													localStorage['city_name'] = city_name;
+													$('#search_input').val('');
+													var new_web = plus.webview.create('weather-info.html','weather_info',{},{});
+													new_web.show();
+												}
+											});
+											return false;
+										}else{
+											city_names.push(city_name);
+										}
+									}else{
+										city_names.push(city_name);
+									}
+									
+									//天气接口
+									var api = 'http://api.map.baidu.com/telematics/v3/weather?location='+city_name+'&output=json&ak=hTXrtTGGcljoOMdf2jZcc1yD';
+									mui.getJSON(api,{},function(data){
+										if(data.error == 0){
+//											console.log(data);
+											document.activeElement.blur();//收起软键盘
+											$('#search_input').val('');
+											//城市天气简介数据
+											vm.citys.push({
+												'name':city_name,
+												'html':data['results'][0]['weather_data'][0]['date'],
+												'img':data['results'][0]['weather_data'][0]['dayPictureUrl']
+												});
+											vm.show_list = true;//列表显示
+										}else{
+											$('#search_input').val('');
+											mui.alert('未找到输入的城市，请重新输入','温馨提示','确认');
+										}
+									}) 
+								}
+							} 
+						}
+				},
+				methods:{
+					//跳转详情页面
+					skip_info:function(city_name){
+						localStorage['city_name'] = city_name;
+						var new_web = plus.webview.create('weather-info.html','weather_info',{},{});
+						new_web.show();
+					}
+				}
+			})
+
+</script>
